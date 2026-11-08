@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10332a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Смета СКС">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Смета СКС</title>
+
+<style>
+/* Layout: одна колонка на телефоне, сверху всегда видна цена; на широком экране справа расшифровка сметы */
+:root{
+  --bg:#eef2f0;--panel:#ffffff;--fg:#16201c;--muted:#5a6962;--line:#d3dbd7;--accent:#0b6e4f;--accent-fg:#ffffff;--soft:#dcebe4;--bar:#10332a;--bar-fg:#ffffff;--bar-muted:#b4cfc4;
+  --wo:#f2b27a;--o:#e8791f;--wg:#9fd2a8;--bl:#2c6fb7;--wb:#a7c6e8;--g:#2e9b4e;--wbr:#c9ab8e;--br:#7a5230;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1613;--panel:#1a2420;--fg:#e8efeb;--muted:#9aaaa2;--line:#2f3d37;--accent:#4cc79b;--accent-fg:#08231a;--soft:#22392f;--bar:#0a2a21;--bar-fg:#ffffff;--bar-muted:#9fc2b4;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1613;--panel:#1a2420;--fg:#e8efeb;--muted:#9aaaa2;--line:#2f3d37;--accent:#4cc79b;--accent-fg:#08231a;--soft:#22392f;--bar:#0a2a21;--bar-fg:#ffffff;--bar-muted:#9fc2b4;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+button,.chip{-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 var(--ui);margin:0;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bar);color:var(--bar-fg)}
+.wires{display:grid;grid-template-columns:repeat(8,1fr);height:5px}
+.wires i:nth-child(1){background:var(--wo)}.wires i:nth-child(2){background:var(--o)}.wires i:nth-child(3){background:var(--wg)}.wires i:nth-child(4){background:var(--bl)}.wires i:nth-child(5){background:var(--wb)}.wires i:nth-child(6){background:var(--g)}.wires i:nth-child(7){background:var(--wbr)}.wires i:nth-child(8){background:var(--br)}
+.inner{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.barin{padding-top:10px;padding-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.lab{font-size:13px;color:var(--bar-muted)}
+.price{font-size:40px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+.per{font-size:14px;color:var(--bar-muted);font-variant-numeric:tabular-nums;text-align:right}
+.main{padding-top:14px;padding-bottom:32px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.col{display:grid;gap:12px;min-width:0;align-content:start}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+h2{font-size:15px;font-weight:600;margin:0 0 10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:6px;padding-bottom:6px}
+.row+.row{border-top:1px solid var(--line)}
+.row>span{min-width:0}
+.row small{display:block;color:var(--muted);font-size:13px}
+.step{display:flex;align-items:center;flex:none}
+.step button{width:44px;height:44px;border:1px solid var(--line);background:var(--soft);color:var(--fg);font:600 22px/1 var(--ui);cursor:pointer;touch-action:manipulation}
+.step button:first-child{border-radius:8px 0 0 8px}.step button:last-child{border-radius:0 8px 8px 0}
+.step input{width:72px;height:44px;border:1px solid var(--line);border-left:0;border-right:0;background:var(--panel);color:var(--fg);font:600 18px var(--ui);text-align:center;font-variant-numeric:tabular-nums;border-radius:0;-webkit-appearance:textfield;-moz-appearance:textfield;appearance:textfield}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;appearance:none;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;top:0;left:0;width:100%;height:100%;margin:0;cursor:pointer}
+.chip span{display:flex;align-items:center;min-height:44px;padding:8px 13px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:15px}
+.chip input:checked+span{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+.chip input:focus-visible+span,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sub{font-size:14px;color:var(--muted);margin:12px 0 7px}
+.sub:first-of-type{margin-top:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:500}
+.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.box{overflow-x:auto}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.btn{font:600 16px var(--ui);min-height:46px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-fg);padding:10px 16px;cursor:pointer}
+.btn.alt{background:var(--soft);color:var(--fg)}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.note a{color:var(--accent)}
+details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
+.pr input{width:88px;height:38px;padding:4px 6px;font:16px var(--ui);text-align:right;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font-variant-numeric:tabular-nums}
+.camsum{margin:12px 0 0;font-size:16px;font-variant-numeric:tabular-nums}
+.blk{font-weight:600;background:var(--soft)}
+.custs{display:grid;gap:12px;margin-top:12px}
+.add-pos{margin-top:12px}
+.cust.pl{grid-template-columns:minmax(0,1fr) 44px}
+.uhead{display:flex;gap:8px;align-items:center}
+.u-t{flex:1;min-width:0;height:44px;padding:6px 8px;font:600 16px var(--ui);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px}
+.u-del{flex:none;width:44px}
+#secs:empty{display:none}
+.custs:empty{display:none}
+.cust{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;gap:8px;align-items:end;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.cust .c-n{grid-column:1/-1}
+.cust label{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}
+.cust input{width:100%;height:44px;padding:6px 8px;font:16px var(--ui);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;min-width:0}
+.c-del{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--fg);font:600 22px/1 var(--ui);cursor:pointer}
+.empty{color:var(--muted);font-size:15px;margin:0}
+@media (min-width:820px){.main{grid-template-columns:minmax(0,1fr) minmax(0,400px);align-items:start}.right{position:sticky;top:calc(96px + env(safe-area-inset-top,0px))}}
+@media (max-width:360px){.price{font-size:34px}.step input{width:56px}.step button{width:40px}}
+</style>
+<script>window.__SMETA_APP=true</script>
+</head><body>
+
+
+<div class="bar">
+  <div class="wires" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="inner barin" aria-live="polite">
+    <div><div class="lab">Стоимость для заказчика</div><div class="price" id="total">0 ₽</div></div>
+    <div class="per" id="per"></div>
+  </div>
+</div>
+
+<form class="inner main" id="f" autocomplete="off" onsubmit="return false">
+<div class="col">
+  <section>
+    <h2>Кабель</h2>
+    <div class="row"><span>Сколько линий</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="ports" type="number" inputmode="numeric" min="0" aria-label="Сколько линий"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Длина одной линии, м<small>в среднем</small></span><div class="step" data-step="5"><button type="button" aria-label="Меньше">−</button><input id="len" type="number" inputmode="decimal" min="0" aria-label="Длина одной линии в метрах"><button type="button" aria-label="Больше">+</button></div></div>
+    <p class="sub">Как прокладываем</p>
+    <div class="chips" id="route"></div>
+    <div class="row" style="margin-top:6px"><span>Новый кабель-канал, м<small>если нужно монтировать</small></span><div class="step" data-step="5"><button type="button" aria-label="Меньше">−</button><input id="duct" type="number" inputmode="decimal" min="0" aria-label="Новый кабель-канал в метрах"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="custs" data-add="cable"></div>
+    <button type="button" class="btn alt add-pos" data-add="cable">+ Своя позиция</button>
+  </section>
+
+  <section>
+    <h2>На каждую линию</h2>
+    <div class="chips" id="per-line"></div>
+    <p class="sub">Проверка линий</p>
+    <div class="chips" id="test"></div>
+    <div class="custs" data-add="perline"></div>
+    <button type="button" class="btn alt add-pos" data-add="perline">+ Своя позиция</button>
+  </section>
+
+  <section>
+    <h2>Оборудование</h2>
+    <div class="row"><span>Точки Wi-Fi</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="wifi" type="number" inputmode="numeric" min="0" aria-label="Точки Wi-Fi"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Настенные шкафы</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="wall" type="number" inputmode="numeric" min="0" aria-label="Настенные шкафы"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Напольные шкафы</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="floor" type="number" inputmode="numeric" min="0" aria-label="Напольные шкафы"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Патч-панели, органайзеры</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="panel" type="number" inputmode="numeric" min="0" aria-label="Патч-панели и органайзеры"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="custs" data-add="equip"></div>
+    <button type="button" class="btn alt add-pos" data-add="equip">+ Своя позиция</button>
+  </section>
+
+  <section>
+    <h2>Камеры видеонаблюдения</h2>
+    <div class="row"><span>Внутренние камеры</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="camin" type="number" inputmode="numeric" min="0" aria-label="Внутренние камеры"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Уличные камеры</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="camout" type="number" inputmode="numeric" min="0" aria-label="Уличные камеры"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Видеорегистраторы</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="nvr" type="number" inputmode="numeric" min="0" aria-label="Видеорегистраторы"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Коммутаторы для камер</span><div class="step" data-step="1"><button type="button" aria-label="Меньше">−</button><input id="camsw" type="number" inputmode="numeric" min="0" aria-label="Коммутаторы для камер"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Кабель до камер, м<small>всего по объекту</small></span><div class="step" data-step="5"><button type="button" aria-label="Меньше">−</button><input id="camcable" type="number" inputmode="decimal" min="0" aria-label="Кабель до камер, м"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="chips" id="cam-opts" style="margin-top:8px"></div>
+    <div class="custs" data-add="cam"></div>
+    <button type="button" class="btn alt add-pos" data-add="cam">+ Своя позиция</button>
+    <p class="camsum">Монтаж камер: <b id="camsum">0 ₽</b></p>
+  </section>
+
+  <div id="secs" class="col"></div>
+  <section>
+    <button type="button" class="btn alt" id="add-sec">+ Добавить свой раздел</button>
+    <p class="note">Надбавки и скидка действуют на все работы, включая свои позиции и разделы.</p>
+  </section>
+
+  <section>
+    <h2>Условия</h2>
+    <div class="chips" id="cond"></div>
+    <p class="sub">Высота работ</p>
+    <div class="chips" id="height"></div>
+    <div class="row" style="margin-top:6px"><span>Материалы, ₽<small>сумма для заказчика, если покупаете вы</small></span><div class="step" data-step="1000"><button type="button" aria-label="Меньше">−</button><input id="mat" type="number" inputmode="numeric" min="0" aria-label="Материалы в рублях"><button type="button" aria-label="Больше">+</button></div></div>
+    <div class="row"><span>Скидка на работы, %</span><div class="step" data-step="5"><button type="button" aria-label="Меньше">−</button><input id="disc" type="number" inputmode="numeric" min="0" max="100" aria-label="Скидка в процентах"><button type="button" aria-label="Больше">+</button></div></div>
+  </section>
+
+  <section>
+    <details>
+      <summary>Мои цены</summary>
+      <p class="sub" style="margin-top:10px">Уровень цен рынка</p>
+      <div class="chips" id="tier"></div>
+      <div class="box" style="margin-top:10px"><table class="pr" id="prices"></table></div>
+      <p class="note">Цены из прайсов на работы в СПб: <a href="https://it178.ru/price/lokalnye-seti/" target="_blank" rel="noopener">IT178</a>, <a href="https://ipg.ooo/systems/montazh-sks/" target="_blank" rel="noopener">IPG</a>, <a href="https://integrus.ru/slabotochnye-sistemi/montazh-sks" target="_blank" rel="noopener">Интегрус</a>, <a href="https://russave.ru/services/sks/" target="_blank" rel="noopener">Руссэйв</a>, <a href="https://bits-it.ru/montazh-sks/" target="_blank" rel="noopener">BITS</a>, <a href="https://systemlines.ru/prices/prajs-na-montazh-sks/" target="_blank" rel="noopener">SystemLines</a>, <a href="https://electromonter.ru/sks" target="_blank" rel="noopener">КЭТ</a>, <a href="https://ds-structures.ru/uslugi/inzhenernye-seti/lvs/" target="_blank" rel="noopener">DS-Structures</a>. Надбавки по прайсу SystemLines. Середина — ориентир между ними. Измените цены на свои: они сохранятся на этом устройстве.</p>
+    </details>
+  </section>
+  <section id="install">
+    <details>
+      <summary>Установить на телефон</summary>
+      <p class="sub" style="margin-top:10px"><b>iPhone и iPad:</b> откройте эту страницу в Safari, нажмите «Поделиться», затем «На экран Домой» и «Добавить».</p>
+      <p class="sub"><b>Android:</b> откройте страницу в Chrome, нажмите меню с тремя точками, затем «Установить приложение» или «Добавить на главный экран».</p>
+    </details>
+  </section>
+</div>
+
+<div class="col right">
+  <section>
+    <h2>Смета</h2>
+    <div class="box" id="smeta"></div>
+    <div class="btns">
+      <button type="button" class="btn" id="send">Скопировать смету</button>
+      <button type="button" class="btn alt" id="clear">Очистить</button>
+    </div>
+    <p class="note" id="msg" role="status"></p>
+    <p class="note">Без НДС (АУСН). Предварительный расчёт, точная смета после осмотра объекта.</p>
+  </section>
+</div>
+</form>
+
+<script>
+var ITEMS=[
+ {k:'ceil',n:'Прокладка кабеля за потолком / по готовой трассе',u:'м',low:40,mid:100,high:150},
+ {k:'channel',n:'Укладка кабеля в кабель-канал',u:'м',low:50,mid:90,high:125},
+ {k:'tray',n:'Укладка кабеля в лоток',u:'м',low:40,mid:100,high:240},
+ {k:'corr',n:'Протяжка кабеля в гофре',u:'м',low:30,mid:70,high:165},
+ {k:'open',n:'Прокладка кабеля открыто на стяжках',u:'м',low:80,mid:95,high:100},
+ {k:'duct',n:'Монтаж кабель-канала',u:'м',low:50,mid:100,high:126},
+ {k:'sock',n:'Монтаж и подключение интернет-розетки',u:'шт',low:130,mid:300,high:650},
+ {k:'wifi',n:'Монтаж и настройка точки Wi-Fi',u:'шт',low:1500,mid:2500,high:3500},
+ {k:'wall',n:'Сборка и монтаж настенного шкафа',u:'шт',low:1320,mid:3500,high:5338},
+ {k:'floor',n:'Сборка и монтаж напольного шкафа',u:'шт',low:4000,mid:8000,high:19000},
+ {k:'panel',n:'Установка патч-панели / органайзера',u:'шт',low:150,mid:950,high:1449},
+ {k:'cross',n:'Кроссировка порта',u:'порт',low:50,mid:150,high:288},
+ {k:'cm',n:'Кабель-менеджмент в шкафу',u:'линия',low:50,mid:117,high:149},
+ {k:'mark',n:'Маркировка линии',u:'порт',low:10,mid:50,high:80},
+ {k:'ring',n:'Прозвонка линии',u:'линия',low:30,mid:60,high:88},
+ {k:'test',n:'Тестирование линии с замером длины',u:'линия',low:150,mid:200,high:350},
+ {k:'cert',n:'Сертификация линии анализатором',u:'линия',low:100,mid:120,high:158},
+ {k:'docs',n:'Исполнительная документация',u:'порт',low:396,mid:450,high:500},
+ {k:'trip',n:'Выезд на объект',u:'выезд',low:1500,mid:1500,high:1500},
+ {k:'camin',n:'Монтаж внутренней камеры с подключением',u:'шт',low:500,mid:2000,high:5000},
+ {k:'camout',n:'Монтаж уличной камеры',u:'шт',low:1000,mid:3000,high:4245},
+ {k:'nvr',n:'Установка и настройка видеорегистратора',u:'шт',low:1000,mid:3500,high:6000},
+ {k:'camsw',n:'Установка и подключение коммутатора для камер',u:'шт',low:1100,mid:2000,high:3000},
+ {k:'camcable',n:'Прокладка кабеля до камер',u:'м',low:40,mid:100,high:150},
+ {k:'camremote',n:'Настройка просмотра с телефона',u:'услуга',low:500,mid:1500,high:3000}
+];
+function pricesFor(t){var p={};ITEMS.forEach(function(i){p[i.k]=i[t]});return p}
+
+function calc(s,p){
+  function add(list,k,q){if(q>0){var it=ITEMS.filter(function(i){return i.k===k})[0];list.push({n:it.n,u:it.u,q:q,pr:p[k],sum:q*p[k]})}}
+  var sks=[],cam=[];
+  add(sks,s.route,s.ports*s.len);add(sks,'duct',s.duct);
+  if(s.sock)add(sks,'sock',s.ports);
+  add(sks,'wifi',s.wifi);add(sks,'wall',s.wall);add(sks,'floor',s.floor);add(sks,'panel',s.panel);
+  if(s.cross)add(sks,'cross',s.ports);
+  if(s.cm)add(sks,'cm',s.ports);
+  if(s.mark)add(sks,'mark',s.ports);
+  if(s.test!=='none')add(sks,s.test,s.ports);
+  if(s.docs)add(sks,'docs',s.ports);
+  add(cam,'camin',s.camin);add(cam,'camout',s.camout);add(cam,'nvr',s.nvr);add(cam,'camsw',s.camsw);add(cam,'camcable',s.camcable);
+  if(s.camremote)add(cam,'camremote',1);
+  var pct=(s.office?10:0)+(s.weekend?20:0)+Number(s.height||0);
+  function part(lines){var work=lines.reduce(function(a,l){return a+l.sum},0);var addOn=Math.round(work*pct/100);var disc=Math.round((work+addOn)*Math.min(s.disc||0,100)/100);return {lines:lines,work:work,addOn:addOn,disc:disc,total:work+addOn-disc}}
+  function own(list,arr,u,qty){(arr||[]).forEach(function(x){var q=qty!=null?qty:x.q;if(q>0&&x.pr>0)list.push({n:x.n||'Дополнительная работа',u:u,q:q,pr:x.pr,sum:q*x.pr})})}
+  var A=s.add||{};own(sks,A.cable,'ед.');own(sks,A.perline,'линия',s.ports);own(sks,A.equip,'ед.');own(cam,A.cam,'ед.');
+  var us=(s.secs||[]).map(function(x){var l=[];own(l,x.items,'ед.');var q=part(l);q.title=x.t||'Свой раздел';return q}).filter(function(q){return q.lines.length});
+  var usTotal=us.reduce(function(t,q){return t+q.total},0);
+  var a=part(sks),b=part(cam),trip=s.trip?p.trip:0,mat=s.mat||0;
+  return {sks:a,cam:b,secs:us,usTotal:usTotal,pct:pct,trip:trip,mat:mat,total:a.total+b.total+usTotal+trip+mat,perPort:s.ports>0&&a.total>0?Math.round(a.total/s.ports):0};
+}
+if(typeof module!=='undefined'){module.exports={calc:calc,pricesFor:pricesFor}}
+
+if(typeof document!=='undefined'){(function(){
+var KEY='smeta-sks-v2';
+var NUMS=['ports','len','duct','wifi','wall','floor','panel','camin','camout','nvr','camsw','camcable','mat','disc'];
+var EXAMPLE={ports:10,len:25,duct:0,wifi:0,wall:1,floor:0,panel:0,mat:0,disc:0,route:'ceil',test:'test',height:'0',sock:true,cross:true,mark:true,cm:false,docs:false,office:false,weekend:false,trip:false};
+var EMPTY=Object.assign({},EXAMPLE,{ports:0,len:0,wall:0});
+function $(i){return document.getElementById(i)}
+function chips(box,type,name,opts){$(box).innerHTML=opts.map(function(o){return '<label class="chip"><input type="'+type+'" name="'+name+'" '+(type==='checkbox'?'id="'+o[0]+'"':'value="'+o[0]+'"')+'><span>'+o[1]+'</span></label>'}).join('')}
+chips('route','radio','route',[['ceil','Потолок / готовая трасса'],['channel','Кабель-канал'],['tray','Лоток'],['corr','Гофра'],['open','Открыто']]);
+chips('per-line','checkbox','',[['sock','Интернет-розетка'],['cross','Кроссировка'],['mark','Маркировка'],['cm','Кабель-менеджмент'],['docs','Документация']]);
+chips('test','radio','test',[['test','Тестирование'],['ring','Прозвонка'],['cert','Сертификация'],['none','Без проверки']]);
+chips('cond','checkbox','',[['office','Работающий офис +10%'],['weekend','Выходные +20%'],['trip','Выезд']]);
+chips('height','radio','height',[['0','До 2,5 м'],['15','Выше 2,5 м +15%'],['20','Выше 4 м +20%']]);
+chips('cam-opts','checkbox','',[['camremote','Настройка просмотра с телефона']]);
+chips('tier','radio','tier',[['low','Низ'],['mid','Середина'],['high','Верх']]);
+var store=null;try{store=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+var tier=(store&&store.tier)||'mid',prices=Object.assign(pricesFor(tier),(store&&store.prices)||{});
+function apply(v){
+  drawAdd(v.add||{});drawSecs(v.secs||[]);
+  NUMS.forEach(function(k){$(k).value=v[k]||''});
+  ['route','test','height'].forEach(function(n){var e=document.querySelector('input[name='+n+'][value="'+v[n]+'"]');if(e)e.checked=true});
+  ['sock','cross','mark','cm','docs','office','weekend','trip','camremote'].forEach(function(k){$(k).checked=!!v[k]});
+}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function custRow(x,pl){return '<div class="cust'+(pl?' pl':'')+'"><input class="c-n" type="text" placeholder="Название работы" aria-label="Название работы" value="'+esc(x.n||'')+'">'+(pl?'':'<label>Кол-во<input class="c-q" type="number" inputmode="decimal" min="0" value="'+(x.q||'')+'"></label>')+'<label>'+(pl?'Цена за линию, ₽':'Цена, ₽')+'<input class="c-p" type="number" inputmode="decimal" min="0" value="'+(x.pr||'')+'"></label><button type="button" class="c-del" aria-label="Удалить позицию">×</button></div>'}
+function secHtml(x){return '<section class="usec"><div class="uhead"><input class="u-t" type="text" placeholder="Название раздела" aria-label="Название раздела" value="'+esc(x.t||'')+'"><button type="button" class="c-del u-del" aria-label="Удалить раздел">×</button></div><div class="custs">'+(x.items||[]).map(function(i){return custRow(i)}).join('')+'</div><button type="button" class="btn alt add-pos">+ Своя позиция</button></section>'}
+function drawAdd(a){document.querySelectorAll('.custs[data-add]').forEach(function(c){var k=c.dataset.add;c.innerHTML=(a[k]||[]).map(function(x){return custRow(x,k==='perline')}).join('')})}
+function drawSecs(l){$('secs').innerHTML=l.map(secHtml).join('')}
+function readRows(box){return Array.prototype.map.call(box.querySelectorAll('.cust'),function(r){function v(c){var e=r.querySelector(c);if(!e)return 0;var x=parseFloat(e.value);return isFinite(x)&&x>0?x:0}return {n:r.querySelector('.c-n').value.trim(),q:v('.c-q'),pr:v('.c-p')}})}
+function readAdd(){var a={};document.querySelectorAll('.custs[data-add]').forEach(function(c){a[c.dataset.add]=readRows(c)});return a}
+function readSecs(){return Array.prototype.map.call(document.querySelectorAll('#secs .usec'),function(s){return {t:s.querySelector('.u-t').value.trim(),items:readRows(s)}})}
+function radio(n){var e=document.querySelector('input[name='+n+']:checked');return e?e.value:''}
+function n(i){var v=parseFloat($(i).value);return isFinite(v)&&v>0?v:0}
+function read(){var s={route:radio('route'),test:radio('test'),height:radio('height'),add:readAdd(),secs:readSecs()};NUMS.forEach(function(k){s[k]=n(k)});['sock','cross','mark','cm','docs','office','weekend','trip','camremote'].forEach(function(k){s[k]=$(k).checked});return s}
+function rub(v){return Math.round(v).toLocaleString('ru-RU')+' ₽'}
+function fmt(v){return Math.round(v).toLocaleString('ru-RU')}
+function drawPrices(){var h='<tr><th>Работа</th><th>Ед.</th><th class="n">Цена, ₽</th></tr>';ITEMS.forEach(function(i){h+='<tr><td>'+i.n+'</td><td>'+i.u+'</td><td class="n"><input type="number" inputmode="numeric" min="0" data-k="'+i.k+'" value="'+prices[i.k]+'" aria-label="Цена: '+i.n+'"></td></tr>'});$('prices').innerHTML=h;var e=document.querySelector('input[name=tier][value="'+tier+'"]');if(e)e.checked=true}
+function save(s){try{localStorage.setItem(KEY,JSON.stringify({input:s,tier:tier,prices:prices}))}catch(e){}}
+var last;
+function render(){
+  var s=read(),r=calc(s,prices);last=r;
+  $('total').textContent=rub(r.total);
+  $('camsum').textContent=rub(r.cam.total);
+  var per=[];
+  var pts=[];if(r.sks.total)pts.push('СКС '+rub(r.sks.total));if(r.cam.total)pts.push('Камеры '+rub(r.cam.total));if(r.usTotal)pts.push('Свои разделы '+rub(r.usTotal));
+  if(pts.length>1)per=pts;
+  else if(r.cam.total)per.push('Монтаж камер');
+  else if(r.usTotal)per.push('Свои разделы');
+  else if(r.perPort)per.push(fmt(r.perPort)+' ₽ за линию');
+  $('per').innerHTML=per.map(function(x){return '<div>'+x+'</div>'}).join('');
+  function block(t,b,tot){if(!b.lines.length)return '';var h='<tr><td colspan="2" class="blk">'+esc(t)+'</td></tr>';b.lines.forEach(function(l){h+='<tr><td>'+esc(l.n)+'<br><span style="color:var(--muted)">'+l.q.toLocaleString('ru-RU')+(l.u?' '+l.u:' шт')+' × '+fmt(l.pr)+' ₽</span></td><td class="n">'+fmt(l.sum)+'</td></tr>'});if(b.addOn)h+='<tr><td>Надбавка за условия, '+r.pct+'%</td><td class="n">'+fmt(b.addOn)+'</td></tr>';if(b.disc)h+='<tr><td>Скидка</td><td class="n">−'+fmt(b.disc)+'</td></tr>';return h+'<tr><td><b>'+esc(tot)+'</b></td><td class="n"><b>'+fmt(b.total)+'</b></td></tr>'}
+  var rows=block('Монтаж СКС',r.sks,'Итого СКС')+block('Монтаж камер',r.cam,'Итого камеры');r.secs.forEach(function(q){rows+=block(q.title,q,'Итого: '+q.title)});
+  if(r.trip)rows+='<tr><td>Выезд на объект</td><td class="n">'+fmt(r.trip)+'</td></tr>';
+  if(r.mat)rows+='<tr><td>Материалы</td><td class="n">'+fmt(r.mat)+'</td></tr>';
+  $('smeta').innerHTML=rows?'<table>'+rows+'<tr><td><b>Всего</b></td><td class="n"><b>'+fmt(r.total)+'</b></td></tr></table>':'<p class="empty">Введите линии или камеры, цена появится сразу.</p>';
+  save(s);
+}
+function text(){var r=last,t='Смета на монтажные работы\n';function block(n,b,tot){if(!b.lines.length)return;t+='\n'+n+'\n';b.lines.forEach(function(l){t+=l.n+': '+l.q.toLocaleString('ru-RU')+(l.u?' '+l.u:' шт')+' × '+fmt(l.pr)+' ₽ = '+fmt(l.sum)+' ₽\n'});if(b.addOn)t+='Надбавка за условия работ, '+r.pct+'%: '+fmt(b.addOn)+' ₽\n';if(b.disc)t+='Скидка: −'+fmt(b.disc)+' ₽\n';t+=tot+': '+fmt(b.total)+' ₽\n'}block('Монтаж СКС',r.sks,'Итого СКС');block('Монтаж камер',r.cam,'Итого камеры');r.secs.forEach(function(q){block(q.title,q,'Итого: '+q.title)});t+='\n';if(r.trip)t+='Выезд на объект: '+fmt(r.trip)+' ₽\n';if(r.mat)t+='Материалы: '+fmt(r.mat)+' ₽\n';return t+'Всего: '+fmt(r.total)+' ₽, без НДС (АУСН).\nПредварительный расчёт, точная смета после осмотра объекта.'}
+apply((store&&store.input)||EXAMPLE);drawPrices();
+$('f').addEventListener('input',function(e){
+  var t=e.target;
+  if(t.dataset&&t.dataset.k){var v=parseFloat(t.value);prices[t.dataset.k]=isFinite(v)&&v>=0?v:0}
+  else if(t.name==='tier'){tier=t.value;prices=pricesFor(tier);drawPrices()}
+  render();
+});
+document.querySelectorAll('.step').forEach(function(st){
+  var inp=st.querySelector('input'),d=Number(st.dataset.step),b=st.querySelectorAll('button');
+  function bump(sign){var v=(parseFloat(inp.value)||0)+sign*d;if(v<0)v=0;if(inp.max&&v>Number(inp.max))v=Number(inp.max);inp.value=v||'';render()}
+  b[0].addEventListener('click',function(){bump(-1)});b[1].addEventListener('click',function(){bump(1)});
+});
+$('f').addEventListener('click',function(e){
+  var t=e.target,b;if(!t.closest)return;
+  if(b=t.closest('#add-sec')){var w=document.createElement('div');w.innerHTML=secHtml({items:[{q:1}]});var s=w.firstChild;$('secs').appendChild(s);s.querySelector('.u-t').focus();render();return}
+  if(b=t.closest('.u-del')){var u=b.closest('.usec');u.parentNode.removeChild(u);render();return}
+  if(b=t.closest('.c-del')){var r=b.closest('.cust');r.parentNode.removeChild(r);render();return}
+  if(b=t.closest('.add-pos')){var box=b.dataset.add?document.querySelector('.custs[data-add="'+b.dataset.add+'"]'):b.parentNode.querySelector('.custs');var pl=b.dataset.add==='perline';var d=document.createElement('div');d.innerHTML=custRow(pl?{}:{q:1},pl);var row=d.firstChild;box.appendChild(row);row.querySelector('.c-n').focus();render()}
+});
+$('clear').addEventListener('click',function(){apply(EMPTY);render();$('msg').textContent='Поля очищены. Ваши цены сохранены.'});
+var canShare=window.__SMETA_APP&&navigator.share;
+if(canShare)$('send').textContent='Отправить смету';
+$('send').addEventListener('click',function(){
+  var t=text();
+  function ok(){$('msg').textContent='Смета скопирована'}
+  function fail(){$('msg').textContent='Не удалось скопировать. Выделите таблицу вручную.'}
+  if(canShare){navigator.share({text:t}).catch(function(){});return}
+  try{navigator.clipboard.writeText(t).then(ok,fail)}catch(e){fail()}
+});
+try{if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)$('install').hidden=true}catch(e){}
+render();
+})()}
+</script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}</script>
+</body></html>

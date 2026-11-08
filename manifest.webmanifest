@@ -1,0 +1,31 @@
+{
+ "name": "Смета СКС",
+ "short_name": "Смета СКС",
+ "description": "Быстрый расчёт стоимости монтажа СКС для заказчика",
+ "lang": "ru",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#10332a",
+ "theme_color": "#10332a",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
